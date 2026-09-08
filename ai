@@ -1,0 +1,105 @@
+#!/bin/sh
+
+APP_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+PACKAGE_DIR="$APP_DIR"
+BOOTSTRAP_FILE="$APP_DIR/_bootstrap.py"
+LEGACY_CACHE_DIR="$APP_DIR/__pycache__"
+REQUIREMENTS_FILE="$APP_DIR/requirements.txt"
+MINIMUM_PYTHON_VERSION="3.10"
+
+cleanup_python_cache() {
+    if [ -d "$PACKAGE_DIR" ]; then
+        find "$PACKAGE_DIR" -type f \( -name '*.pyc' -o -name '*.pyo' \) \
+            -delete 2>/dev/null || true
+        find "$PACKAGE_DIR" -depth -type d -name '__pycache__' \
+            -exec rmdir {} \; 2>/dev/null || true
+    fi
+    if [ -d "$LEGACY_CACHE_DIR" ]; then
+        find "$LEGACY_CACHE_DIR" -type f \
+            \( -name 'ai.*.pyc' -o -name 'ai.*.pyo' \) \
+            -delete 2>/dev/null || true
+        rmdir "$LEGACY_CACHE_DIR" 2>/dev/null || true
+    fi
+}
+
+trap cleanup_python_cache 0
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+if ! command -v python3 >/dev/null 2>&1; then
+    printf '%s\n' \
+        "ERROR: Missing required component: Python $MINIMUM_PYTHON_VERSION or newer." \
+        "Install Python and run ai again." >&2
+    exit 1
+fi
+
+PYTHON_BIN=$(command -v python3)
+
+if ! "$PYTHON_BIN" -c \
+    "import sys; raise SystemExit(sys.version_info < (3, 10))"
+then
+    PYTHON_VERSION=$(
+        "$PYTHON_BIN" -c \
+            'import sys; print(".".join(map(str, sys.version_info[:3])))'
+    )
+    printf '%s\n' \
+        "ERROR: Unsupported Python version: $PYTHON_VERSION." \
+        "Required component: Python $MINIMUM_PYTHON_VERSION or newer." >&2
+    exit 1
+fi
+
+if [ -f "$REQUIREMENTS_FILE" ]; then
+    MISSING_REQUIREMENTS=$(
+        "$PYTHON_BIN" - "$REQUIREMENTS_FILE" <<'PYTHON_REQUIREMENTS'
+import importlib.metadata
+import re
+import sys
+
+missing = []
+for raw_line in open(sys.argv[1], encoding="utf-8"):
+    requirement = raw_line.strip()
+    if not requirement or requirement.startswith("#"):
+        continue
+    name_match = re.match(r"[A-Za-z0-9_.-]+", requirement)
+    if name_match is None:
+        continue
+    distribution = name_match.group(0)
+    try:
+        importlib.metadata.version(distribution)
+    except importlib.metadata.PackageNotFoundError:
+        missing.append(requirement)
+
+print("\n".join(missing))
+PYTHON_REQUIREMENTS
+    )
+    if [ -n "$MISSING_REQUIREMENTS" ]; then
+        printf '%s\n' "ERROR: Missing required Python packages:" >&2
+        printf '%s\n' "$MISSING_REQUIREMENTS" |
+            while IFS= read -r requirement; do
+                printf '  - %s\n' "$requirement" >&2
+            done
+        printf '%s\n' \
+            "Install them with: $PYTHON_BIN -m pip install -r $REQUIREMENTS_FILE" >&2
+        exit 1
+    fi
+fi
+
+cd "$APP_DIR" || {
+    printf 'ERROR: Cannot open application directory: %s\n' "$APP_DIR" >&2
+    exit 1
+}
+
+IMPORT_ERROR=$(
+    "$PYTHON_BIN" "$BOOTSTRAP_FILE" --check 2>&1
+)
+IMPORT_STATUS=$?
+if [ "$IMPORT_STATUS" -ne 0 ]; then
+    printf '%s\n' \
+        "ERROR: AI Model Manager Python requirements are incomplete:" \
+        "$IMPORT_ERROR" >&2
+    exit 1
+fi
+
+"$PYTHON_BIN" "$BOOTSTRAP_FILE" "$@"
+exit $?

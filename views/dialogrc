@@ -1,0 +1,21 @@
+# AI Models Manager dialog theme overrides.
+# The application name and version (backtitle) use screen_color.
+screen_color = (WHITE,BLUE,ON)
+
+# Active buttons have one uniform style. The keyboard shortcut character no
+# longer has a separate square/background or a different foreground color.
+button_active_color = (WHITE,BLUE,ON)
+button_key_active_color = (WHITE,BLUE,ON)
+button_label_active_color = (WHITE,BLUE,ON)
+
+# Do not emphasize the shortcut character on inactive buttons either.
+button_key_inactive_color = (BLACK,WHITE,ON)
+button_label_inactive_color = (BLACK,WHITE,ON)
+
+# Selected menu/checklist entries and their shortcut characters use the same
+# readable white-on-blue style.
+item_selected_color = (WHITE,BLUE,ON)
+tag_key_color = (BLACK,WHITE,ON)
+tag_selected_color = (WHITE,BLUE,ON)
+tag_key_selected_color = (WHITE,BLUE,ON)
+check_selected_color = (WHITE,BLUE,ON)

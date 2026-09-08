@@ -1,0 +1,27 @@
+from enum import Enum
+
+
+class CommandName(str, Enum):
+    AGENT = "agent"
+    CHAT = "chat"
+    CLEAR_CACHE = "clear-cache"
+    DETAILS = "details"
+    HELP = "help"
+    IMAGE = "image"
+    INSTALL = "install"
+    MODELS = "models"
+    MODELS_REFRESH = "models-refresh"
+    PURGE = "purge"
+    RUN = "run"
+    SESSION = "session"
+    SETUP = "setup"
+    SET_BASE = "set-base"
+    STOP = "stop"
+    STOP_ALL = "stop-all"
+    TOOL = "tool"
+    TOOLS = "tools"
+    TUI = "tui"
+    UNINSTALL = "uninstall"
+    UPDATE = "update"
+    UPDATE_MODEL = "update-model"
+    VERSION = "version"

@@ -1,0 +1,16 @@
+# AI Models Manager sorting dialog theme and shortcuts.
+screen_color = (WHITE,BLUE,ON)
+button_active_color = (WHITE,BLUE,ON)
+button_key_active_color = (WHITE,BLUE,ON)
+button_label_active_color = (WHITE,BLUE,ON)
+button_key_inactive_color = (BLACK,WHITE,ON)
+button_label_inactive_color = (BLACK,WHITE,ON)
+item_selected_color = (WHITE,BLUE,ON)
+tag_key_color = (BLACK,WHITE,ON)
+tag_selected_color = (WHITE,BLUE,ON)
+tag_key_selected_color = (WHITE,BLUE,ON)
+
+bindkey menubox F2 EXTRA
+bindkey menu F2 EXTRA
+bindkey menubox \? EXTRA
+bindkey menu \? EXTRA
